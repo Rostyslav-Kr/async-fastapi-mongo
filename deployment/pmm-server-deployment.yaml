@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: pmm-server
+  name: pmm-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: pmm-server
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: pmm-server
+    spec:
+      containers:
+        - env:
+            - name: PERCONA_TEST_DBAAS
+              value: "1"
+          image: percona/pmm-server:2
+          name: pmm-server
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          resources: {}
+      restartPolicy: Always
+status: {}

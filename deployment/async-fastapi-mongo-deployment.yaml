@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: async-fastapi-mongo
+  name: async-fastapi-mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: async-fastapi-mongo
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: async-fastapi-mongo
+    spec:
+      containers:
+        - env:
+            - name: MONGO_DETAILS
+              value: mongodb://mongo:secret@mongo:27017
+          image: askomorokhov/async-fastapi-mongo
+          name: async-fastapi-mongo
+          ports:
+            - containerPort: 8000
+          resources: {}
+      restartPolicy: Always
+status: {}

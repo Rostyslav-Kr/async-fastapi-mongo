@@ -1,0 +1,52 @@
+---
+version: "3"
+services:
+  async-fastapi-mongo:
+    container_name: async-fastapi-mongo
+    image: askomorokhov/async-fastapi-mongo
+    environment:
+      - MONGO_DETAILS=mongodb://mongo:secret@mongo:27017
+    depends_on:
+      - mongo
+    ports:
+      - 8000:8000
+    restart: always
+
+  pmm-server:
+    container_name: pmm-server
+    image: percona/pmm-server:2
+    ports:
+      - 80:80
+      - 443:443
+    environment:
+      - PERCONA_TEST_DBAAS=1
+    restart: always
+
+  pmm-client:
+    container_name: pmm-client
+    image: centos
+    depends_on:
+      - pmm-server
+      - mongo
+    command: >
+      bash -c "
+        yum install https://repo.percona.com/yum/percona-release-latest.noarch.rpm -y
+        percona-release disable all
+        percona-release enable original testing
+        yum update -y
+        yum install pmm2-client -y
+        pmm-agent setup --config-file=/usr/local/percona/pmm2/config/pmm-agent.yaml --server-address=pmm-server:443 --server-insecure-tls --server-username=admin --server-password=admin
+        nohup pmm-agent --config-file=/usr/local/percona/pmm2/config/pmm-agent.yaml &
+        sleep 60
+        pmm-admin add mongodb --username=mongo --password=secret Mongo mongo:27017
+        tail -f /dev/null
+      "
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo
+      - MONGO_INITDB_ROOT_PASSWORD=secret
+    ports:
+      - "27017:27017"

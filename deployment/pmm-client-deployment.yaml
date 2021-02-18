@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.22.0 (HEAD)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: pmm-client
+  name: pmm-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: pmm-client
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.22.0 (HEAD)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: pmm-client
+    spec:
+      containers:
+        - args:
+            - bash
+            - -c
+            - |2
+
+                yum install https://repo.percona.com/yum/percona-release-latest.noarch.rpm -y
+                percona-release disable all
+                percona-release enable original testing
+                yum update -y
+                yum install pmm2-client -y
+                pmm-agent setup --config-file=/usr/local/percona/pmm2/config/pmm-agent.yaml --server-address=pmm-server:443 --server-insecure-tls --server-username=admin --server-password=admin
+                nohup pmm-agent --config-file=/usr/local/percona/pmm2/config/pmm-agent.yaml &
+                sleep 60
+                pmm-admin add mongodb --username=mongo --password=secret Mongo mongo:27017
+                tail -f /dev/null
+          image: centos
+          name: pmm-client
+          resources: {}
+      restartPolicy: Always
+status: {}
